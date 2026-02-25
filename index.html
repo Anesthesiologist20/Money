@@ -2,73 +2,109 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سجل ميزانيتي | المصدر المعتمد</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- وسم Fullscreen للآيفون (PWA) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ميزانيتي">
+    
+    <title>سجل الميزانية المعتمد</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;600;700;900&display=swap');
-        body { font-family: 'Noto Sans Arabic', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        
+        :root {
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+
+        body { 
+            font-family: 'Noto Sans Arabic', sans-serif; 
+            background-color: #f8fafc; 
+            color: #1e293b;
+            padding-top: var(--safe-top);
+            padding-bottom: var(--safe-bottom);
+            -webkit-user-select: none;
+        }
+
         .card-shadow { box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05); }
         .progress-bar { transition: width 1.5s ease-in-out; }
         .hidden { display: none; }
+        
+        /* تحسينات الواجهة لتطبيق الجوال */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding-top: calc(var(--safe-top) + 0.5rem);
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="pb-24">
+<body class="antialiased no-scrollbar">
 
-    <!-- Navbar -->
-    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 p-4 shadow-sm">
+    <!-- Sticky Header -->
+    <nav class="sticky-header border-b border-slate-200 px-6 py-4 shadow-sm">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg"><i class="fas fa-wallet text-xl"></i></div>
+                <div class="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-wallet text-xl"></i>
+                </div>
                 <div>
-                    <h1 class="text-xl font-black text-slate-800">سجل ميزانيتي</h1>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest" id="summaryHeader">جاري الحساب...</p>
+                    <h1 class="text-xl font-black text-slate-800 leading-tight">ميزانيتي</h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest" id="lastUpdateText">الأرشيف المعتمد</p>
                 </div>
             </div>
-            <div class="flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full border border-blue-100">
+            <div class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full border border-blue-100">
                 <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
-                <span class="text-[10px] font-black uppercase">مزامنة نشطة</span>
+                <span class="text-[10px] font-black">مزامنة نشطة</span>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto px-4 mt-8 space-y-8 text-right">
+    <main class="max-w-4xl mx-auto px-4 mt-6 space-y-6">
         
-        <!-- Summary Stats -->
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div class="md:col-span-2 bg-slate-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl">
-                <div class="relative z-10">
-                    <p class="text-slate-400 text-xs font-bold mb-1 uppercase tracking-widest">إجمالي المصروفات (بيانات الكود)</p>
-                    <h2 class="text-6xl font-black tracking-tighter mb-8" id="totalAmountDisplay">٠</h2>
+        <!-- Dashboard Stats -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-2 bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl min-h-[220px] flex flex-col justify-center">
+                <div class="relative z-10 text-right">
+                    <p class="text-slate-400 text-xs font-bold mb-1 uppercase tracking-widest">إجمالي المصروفات التراكمي</p>
+                    <h2 class="text-5xl font-black tracking-tighter mb-8" id="totalDisplay">٠</h2>
                     <div class="flex gap-4">
-                        <div class="bg-white/10 px-5 py-3 rounded-2xl border border-white/5 backdrop-blur-md text-center min-w-[100px]">
+                        <div class="bg-white/10 px-5 py-3 rounded-2xl border border-white/5 backdrop-blur-md">
                             <p class="text-[9px] text-slate-400 font-black uppercase">العمليات</p>
                             <p class="text-xl font-bold" id="txCount">٠</p>
                         </div>
-                        <div class="bg-white/10 px-5 py-3 rounded-2xl border border-white/5 backdrop-blur-md text-center min-w-[100px]">
+                        <div class="bg-white/10 px-5 py-3 rounded-2xl border border-white/5 backdrop-blur-md">
                             <p class="text-[9px] text-slate-400 font-black uppercase">الأيام</p>
                             <p class="text-xl font-bold" id="dayCount">٠</p>
                         </div>
                     </div>
                 </div>
-                <i class="fas fa-file-invoice-dollar absolute -right-10 -bottom-10 text-[260px] opacity-5 rotate-12"></i>
+                <i class="fas fa-sack-dollar absolute -right-10 -bottom-10 text-[260px] opacity-5 rotate-12"></i>
             </div>
 
-            <!-- Smart Button -->
-            <div class="bg-indigo-600 rounded-[2.5rem] p-8 text-white shadow-xl flex flex-col justify-center items-center text-center cursor-pointer hover:bg-indigo-700 transition-all group" onclick="toggleModal(true)">
+            <!-- Smart Input Card -->
+            <div class="bg-indigo-600 rounded-[2.5rem] p-8 text-white shadow-xl flex flex-col justify-center items-center text-center cursor-pointer hover:bg-indigo-700 active:scale-95 transition-all group" onclick="openModal()">
                 <div class="w-16 h-16 bg-white/20 rounded-3xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <i class="fas fa-sparkles text-3xl"></i>
                 </div>
-                <h3 class="text-xl font-black mb-1">إضافة ذكية</h3>
-                <p class="text-xs opacity-70 leading-relaxed font-medium">احفظ أي مصروف جديد سحابياً</p>
+                <h3 class="text-xl font-black">إضافة سريعة</h3>
+                <p class="text-xs opacity-70 mt-1 leading-relaxed">احفظ مصروفاتك الجديدة سحابياً</p>
             </div>
         </section>
 
         <!-- Category Analysis -->
-        <section class="bg-white p-8 rounded-[2.5rem] border border-slate-200 card-shadow">
+        <section class="bg-white p-8 rounded-[2.5rem] border border-slate-200 card-shadow text-right">
             <h3 class="text-xl font-black text-slate-800 mb-8 flex items-center gap-3">
-                <i class="fas fa-chart-pie text-blue-600"></i> تحليل الفئات المعتمد
+                <i class="fas fa-chart-pie text-indigo-500"></i> تحليل الفئات المعتمد
             </h3>
             <div id="categoryGrid" class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                 <!-- JS Inject -->
@@ -79,50 +115,285 @@
         <section class="max-w-md mx-auto">
             <div class="relative">
                 <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-slate-300"></i>
-                <input type="text" id="searchInput" oninput="render()" placeholder="ابحث في السجل..." class="w-full bg-white border border-slate-200 rounded-2xl py-4 pr-11 pl-4 text-sm font-bold shadow-sm outline-none focus:ring-4 focus:ring-blue-50 transition-all text-right">
+                <input type="text" id="searchInput" oninput="render()" placeholder="ابحث في السجل..." 
+                       class="w-full bg-white border border-slate-200 rounded-2xl py-4 pr-11 pl-4 text-sm font-bold shadow-sm outline-none focus:ring-4 focus:ring-indigo-50 transition-all text-right">
             </div>
         </section>
 
-        <!-- Timeline -->
+        <!-- History Timeline -->
         <section id="dailyTimeline" class="space-y-10 relative">
             <!-- Days injected here -->
         </section>
     </main>
 
-    <!-- Modal -->
+    <!-- Smart Modal -->
     <div id="smartModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 shadow-2xl relative text-right animate-in fade-in duration-300">
-            <button onclick="toggleModal(false)" class="absolute left-8 top-8 text-slate-400"><i class="fas fa-times text-xl"></i></button>
+        <div class="bg-white w-full max-w-lg rounded-[3rem] p-8 shadow-2xl relative text-right animate-in fade-in duration-200">
+            <button onclick="closeModal()" class="absolute left-8 top-8 text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
             <div class="flex items-center gap-3 mb-6">
                 <div class="p-3 bg-indigo-50 text-indigo-600 rounded-2xl"><i class="fas fa-magic"></i></div>
-                <h3 class="text-xl font-black">ما المستجدات؟</h3>
+                <h3 class="text-xl font-black text-slate-800">إضافة مصروف جديد</h3>
             </div>
-            <textarea id="smartInput" placeholder="اكتب مصروفك هنا (مثال: بقالة ٢٠ ريال)" class="w-full bg-slate-50 border-2 border-slate-100 rounded-3xl p-6 text-slate-700 font-bold min-h-[140px] outline-none focus:border-indigo-200 transition-all text-right"></textarea>
-            <button onclick="processSmartAdd()" class="w-full bg-indigo-600 text-white font-black py-5 rounded-[2rem] shadow-lg mt-4 flex items-center justify-center gap-3">
-                <span id="btnText">حفظ في السجل</span>
+            <textarea id="smartInput" placeholder="مثال: صرفت ١٥ ريال قهوة اليوم" 
+                      class="w-full bg-slate-50 border-2 border-slate-100 rounded-[2rem] p-6 text-slate-700 font-bold min-h-[140px] outline-none focus:border-indigo-200 transition-all text-right"></textarea>
+            <button id="saveBtn" onclick="processSmartAdd()" class="w-full bg-indigo-600 text-white font-black py-5 rounded-[2rem] shadow-lg mt-4 flex items-center justify-center gap-3 active:scale-95 transition-all">
+                <span id="btnText">حفظ المصروف</span>
                 <div id="loader" class="hidden w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             </button>
         </div>
     </div>
 
-    <!-- Logic Script -->
+    <!-- Core App Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Setup
+        // Firebase Setup
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'stable-fixed-budget';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'master-budget-v26';
         const apiKey = ""; 
 
         let cloudData = [];
 
-        // 1. قاعدة البيانات المعتمدة (من الكود الذي أرفقته أنت حرفياً)
-        const rawDataFromUser = [
+        // 1. البيانات الكاملة المأخوذة من الكود الذي أرفقته (ديسمبر تحت، فبراير فوق)
+        const archive = [
+            { d: '25 / 2', i: 'توصيل بروتين', a: 55, c: 'صحة' },
+            { d: '25 / 2', i: 'توصيلة كهرب', a: 50, c: 'منزل' },
+            { d: '24 / 2', i: 'حوالة رباب ❤️', a: 4000, c: 'التزامات' },
+            { d: '24 / 2', i: 'مخالفات', a: 600, c: 'سيارة' },
+            { d: '24 / 2', i: 'مقاضي لحم', a: 110, c: 'تموينات' },
+            { d: '24 / 2', i: 'بقالة', a: 100, c: 'تموينات' },
+            { d: '24 / 2', i: 'ماء', a: 11, c: 'تموينات' },
+            { d: '24 / 2', i: 'معسل', a: 100, c: 'ترفيه' },
+            { d: '24 / 2', i: 'نينجا صدور دجاج وأخرى', a: 109, c: 'تموينات' },
+            { d: '24 / 2', i: 'بقالة بيض', a: 20, c: 'تموينات' },
+            { d: '22 / 2', i: 'تحاليل سكينة', a: 560, c: 'صحة' },
+            { d: '22 / 2', i: 'بنزين', a: 156, c: 'سيارة' },
+            { d: '22 / 2', i: 'بقالة', a: 30, c: 'تموينات' },
+            { d: '21 / 2', i: 'مخالفة موقف', a: 115, c: 'سيارة' },
+            { d: '21 / 2', i: 'كافي', a: 25, c: 'قهوة' },
+            { d: '21 / 2', i: 'بقالة', a: 12, c: 'تموينات' },
+            { d: '18 / 2', i: 'حوالة رباب ❤️', a: 2500, c: 'التزامات' },
+            { d: '18 / 2', i: 'عيادة غدد الموسى سكينة', a: 365, c: 'صحة' },
+            { d: '18 / 2', i: 'بنزين', a: 50, c: 'سيارة' },
+            { d: '18 / 2', i: 'بقالة', a: 35, c: 'تموينات' },
+            { d: '18 / 2', i: 'قهوة بن', a: 50, c: 'قهوة' },
+            { d: '18 / 2', i: 'تقنية نت', a: 8, c: 'تقنية' },
+            { d: '17 / 2', i: 'تفعيل موبايلي سنوي', a: 350, c: 'فواتير' },
+            { d: '17 / 2', i: 'مقاضي نت تقنية', a: 64, c: 'تقنية' },
+            { d: '17 / 2', i: 'بقالة', a: 4, c: 'تموينات' },
+            { d: '16 / 2', i: 'معسل', a: 245, c: 'ترفيه' },
+            { d: '16 / 2', i: 'خياط تقصير ملابسي', a: 75, c: 'عائلة' },
+            { d: '16 / 2', i: 'مخالفة مرورية', a: 113, c: 'سيارة' },
+            { d: '16 / 2', i: 'غداء', a: 34, c: 'ترفيه' },
+            { d: '16 / 2', i: 'ثوب عبود', a: 65, c: 'عائلة' },
+            { d: '16 / 2', i: '٢ كيبل نت', a: 30, c: 'تقنية' },
+            { d: '15 / 2', i: 'زين نت', a: 324, c: 'فواتير' },
+            { d: '15 / 2', i: 'زين نت ثانية', a: 200, c: 'فواتير' },
+            { d: '15 / 2', i: 'بقالة', a: 16, c: 'تموينات' },
+            { d: '15 / 2', i: 'بروتين Clear Whey', a: 290, c: 'صحة' },
+            { d: '15 / 2', i: 'بقالة إضافية', a: 20, c: 'تموينات' },
+            { d: '14 / 2', i: 'غسيل سيارات', a: 65, c: 'سيارة' },
+            { d: '14 / 2', i: 'مقاضي بقالة', a: 37, c: 'تموينات' },
+            { d: '13 / 2', i: 'فاتورة كهرباء', a: 1080, c: 'فواتير' },
+            { d: '13 / 2', i: 'صيدلية سياليس', a: 240, c: 'صحة' },
+            { d: '13 / 2', i: 'هدية رباب وتغليف', a: 285, c: 'عائلة' },
+            { d: '13 / 2', i: 'مخالفة مرورية', a: 113, c: 'سيارة' },
+            { d: '13 / 2', i: 'مقاضي بقالة', a: 55, c: 'تموينات' },
+            { d: '13 / 2', i: 'مقاضي بقالة ثانية', a: 42, c: 'تموينات' },
+            { d: '13 / 2', i: 'عشاء فدك', a: 21, c: 'ترفيه' },
+            { d: '13 / 2', i: 'حلاق', a: 15, c: 'ترفيه' },
+            { d: '13 / 2', i: 'عصير فرغلي', a: 23, c: 'ترفيه' },
+            { d: '13 / 2', i: 'مبلغ غير معروف', a: 43, c: 'أخرى' },
+            { d: '12 / 2', i: 'معرض التمور', a: 170, c: 'تموينات' },
+            { d: '12 / 2', i: 'غير معروف', a: 22, c: 'أخرى' },
+            { d: '11 / 2', i: 'جرس ذكي eufy', a: 500, c: 'منزل' },
+            { d: '11 / 2', i: 'بنزين', a: 161, c: 'سيارة' },
+            { d: '11 / 2', i: 'عيادة عظام سكينة', a: 230, c: 'صحة' },
+            { d: '11 / 2', i: 'عشاء', a: 67, c: 'ترفيه' },
+            { d: '11 / 2', i: 'برق barq', a: 100, c: 'فواتير' },
+            { d: '10 / 2', i: 'صيدلية دواء الدهون', a: 350, c: 'صحة' },
+            { d: '10 / 2', i: 'غداء', a: 26, c: 'ترفيه' },
+            { d: '10 / 2', i: 'مغسلة ملابس', a: 23, c: 'منزل' },
+            { d: '10 / 2', i: 'مقاضي ريموت شاشة', a: 20, c: 'تقنية' },
+            { d: '10 / 2', i: 'صيانة شطاف حمام', a: 25, c: 'منزل' },
+            { d: '9 / 2', i: 'مقاضي دجاج', a: 132, c: 'تموينات' },
+            { d: '9 / 2', i: 'مقاضي جرس منزلي تابي', a: 116, c: 'منزل' },
+            { d: '9 / 2', i: 'صيانة منزلية خرطوم حمام', a: 58, c: 'منزل' },
+            { d: '9 / 2', i: 'معسل', a: 28, c: 'ترفيه' },
+            { d: '9 / 2', i: 'صيدلية فياجرا موفيكول', a: 105, c: 'صحة' },
+            { d: '9 / 2', i: 'سوارة رياضية رباب تابي', a: 280, c: 'صحة' },
+            { d: '9 / 2', i: 'بقالة', a: 36, c: 'تموينات' },
+            { d: '8 / 2', i: 'لبسة عبود ومسند كاحل', a: 100, c: 'عائلة' },
+            { d: '8 / 2', i: 'بقالة', a: 7, c: 'تموينات' },
+            { d: '6 / 2', i: 'برق barq', a: 500, c: 'فواتير' },
+            { d: '6 / 2', i: 'باينينس P2P', a: 2000, c: 'التزامات' },
+            { d: '6 / 2', i: 'قهوة', a: 9, c: 'قهوة' },
+            { d: '6 / 2', i: 'مقاضي خمسات', a: 145, c: 'تموينات' },
+            { d: '6 / 2', i: 'عشاء', a: 88, c: 'ترفيه' },
+            { d: '6 / 2', i: 'بركة المولد', a: 150, c: 'أخرى' },
+            { d: '6 / 2', i: 'معسل', a: 75, c: 'ترفيه' },
+            { d: '5 / 2', i: 'قهوة', a: 10, c: 'قهوة' },
+            { d: '5 / 2', i: 'غير معروف', a: 63, c: 'أخرى' },
+            { d: '5 / 2', i: 'معسل', a: 88, c: 'ترفيه' },
+            { d: '5 / 2', i: 'همة عاملة منزلية', a: 870, c: 'أخرى' },
+            { d: '5 / 2', i: 'قهوة إضافية', a: 10, c: 'قهوة' },
+            { d: '5 / 2', i: 'ألعاب العامر', a: 350, c: 'ترفيه' },
+            { d: '5 / 2', i: 'كتيب تمارين', a: 12, c: 'عائلة' },
+            { d: '4 / 2', i: 'قهوة', a: 13, c: 'قهوة' },
+            { d: '4 / 2', i: 'بقالة', a: 44, c: 'تموينات' },
+            { d: '3 / 2', i: 'قهوة', a: 14, c: 'قهوة' },
+            { d: '3 / 2', i: 'قرقيعان', a: 234, c: 'عائلة' },
+            { d: '3 / 2', i: 'همة عاملة منزلية', a: 105, c: 'أخرى' },
+            { d: '3 / 2', i: 'بقالة', a: 8, c: 'تموينات' },
+            { d: '2 / 2', i: 'غير معروف', a: 54, c: 'أخرى' },
+            { d: '2 / 2', i: 'بنزين', a: 165, c: 'سيارة' },
+            { d: '2 / 2', i: 'همة عاملة منزلية', a: 85, c: 'أخرى' },
+            { d: '1 / 2', i: 'قهوة', a: 10, c: 'قهوة' },
+            { d: '1 / 2', i: 'توصيل مدرسة سكينة', a: 200, c: 'عائلة' },
+            { d: '1 / 2', i: 'مقاضي بندة', a: 1325, c: 'تموينات' },
+            { d: '31 / 1', i: 'مستشفى الموسى', a: 600, c: 'صحة' },
+            { d: '31 / 1', i: 'نينجا بقالة', a: 70, c: 'تموينات' },
+            { d: '31 / 1', i: 'بقالة', a: 31, c: 'تموينات' },
+            { d: '31 / 1', i: 'سكراب طبي', a: 330, c: 'صحة' },
+            { d: '31 / 1', i: 'غير معروف', a: 50, c: 'أخرى' },
+            { d: '31 / 1', i: 'عشاء', a: 93, c: 'ترفيه' },
+            { d: '30 / 1', i: 'بقالة', a: 20, c: 'تموينات' },
+            { d: '30 / 1', i: 'بقالة ثانية', a: 20, c: 'تموينات' },
+            { d: '30 / 1', i: 'فساتين قرقيعان', a: 400, c: 'عائلة' },
+            { d: '30 / 1', i: 'بقالة ثالثة', a: 5, c: 'تموينات' },
+            { d: '30 / 1', i: 'عشاء', a: 88, c: 'ترفيه' },
+            { d: '30 / 1', i: 'بستان العائلة', a: 135, c: 'تموينات' },
+            { d: '29 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
+            { d: '29 / 1', i: 'غير معروف', a: 109, c: 'أخرى' },
+            { d: '28 / 1', i: 'عاملة منزلية همة', a: 115, c: 'أخرى' },
+            { d: '28 / 1', i: 'نادي جيم رباب', a: 1000, c: 'صحة' },
+            { d: '28 / 1', i: 'حلاق', a: 20, c: 'عائلة' },
+            { d: '28 / 1', i: 'بقالة', a: 13, c: 'تموينات' },
+            { d: '28 / 1', i: 'معسل', a: 97, c: 'ترفيه' },
+            { d: '28 / 1', i: 'رسوم الروضة رغد', a: 4425, c: 'عائلة' },
+            { d: '28 / 1', i: 'مخالفات مرورية', a: 226, c: 'سيارة' },
+            { d: '28 / 1', i: 'قطع غيار تابي', a: 988, c: 'سيارة' },
+            { d: '26 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
+            { d: '26 / 1', i: 'شاشات تابلت', a: 400, c: 'تقنية' },
+            { d: '26 / 1', i: 'دروس خصوصية صفية', a: 700, c: 'عائلة' },
+            { d: '26 / 1', i: 'صيانة السيارة', a: 1025, c: 'سيارة' },
+            { d: '26 / 1', i: 'غير معروف', a: 90, c: 'أخرى' },
+            { d: '26 / 1', i: 'بقالة', a: 4, c: 'تموينات' },
+            { d: '26 / 1', i: 'مقاضي بقالة', a: 26, c: 'تموينات' },
+            { d: '26 / 1', i: 'أكياس قرقيعان', a: 200, c: 'عائلة' },
+            { d: '26 / 1', i: 'فيزا تسوية', a: 16290, c: 'التزامات' },
+            { d: '26 / 1', i: 'قهوة ثانية', a: 15, c: 'قهوة' },
+            { d: '26 / 1', i: 'بدلة عبود', a: 60, c: 'عائلة' },
+            { d: '26 / 1', i: 'بقالة ثانية', a: 10, c: 'تموينات' },
+            { d: '26 / 1', i: 'رحلة مدرسة عبود', a: 35, c: 'عائلة' },
+            { d: '25 / 1', i: 'مقاضي', a: 25, c: 'تموينات' },
+            { d: '25 / 1', i: 'بنزين', a: 167, c: 'سيارة' },
+            { d: '25 / 1', i: 'STC', a: 300, c: 'فواتير' },
+            { d: '25 / 1', i: 'بقالة', a: 15, c: 'تموينات' },
+            { d: '25 / 1', i: 'مقاضي قرطاسية', a: 30, c: 'عائلة' },
+            { d: '24 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
+            { d: '24 / 1', i: 'بقالة', a: 4, c: 'تموينات' },
+            { d: '23 / 1', i: 'عشاء', a: 33, c: 'ترفيه' },
+            { d: '22 / 1', i: 'غير معروف', a: 21, c: 'أخرى' },
+            { d: '21 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
+            { d: '21 / 1', i: 'غسيل زوالي', a: 180, c: 'أخرى' },
+            { d: '21 / 1', i: 'معسل', a: 190, c: 'ترفيه' },
+            { d: '21 / 1', i: 'مقاضي قرطاسية سبورة', a: 58, c: 'عائلة' },
+            { d: '21 / 1', i: 'بقالة', a: 23, c: 'تموينات' },
+            { d: '20 / 1', i: 'قهوة', a: 20, c: 'قهوة' },
+            { d: '20 / 1', i: 'بقالة', a: 5, c: 'تموينات' },
+            { d: '20 / 1', i: 'معسل', a: 75, c: 'ترفيه' },
+            { d: '20 / 1', i: 'حلاق', a: 20, c: 'عائلة' },
+            { d: '20 / 1', i: 'بقالة ثانية', a: 8, c: 'تموينات' },
+            { d: '19 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
+            { d: '18 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
+            { d: '18 / 1', i: 'مكملات', a: 147, c: 'صحة' },
+            { d: '18 / 1', i: 'عشاء', a: 69, c: 'ترفيه' },
+            { d: '18 / 1', i: 'بقالة وفواكة', a: 80, c: 'تموينات' },
+            { d: '17 / 1', i: 'سلمون', a: 105, c: 'تموينات' },
+            { d: '17 / 1', i: 'بنزين', a: 167, c: 'سيارة' },
+            { d: '17 / 1', i: 'ثوب عبود', a: 80, c: 'عائلة' },
+            { d: '17 / 1', i: 'حلاق عبود', a: 25, c: 'عائلة' },
+            { d: '17 / 1', i: 'عشاء', a: 22, c: 'ترفيه' },
+            { d: '17 / 1', i: 'مقاضي دجاج', a: 108, c: 'تموينات' },
+            { d: '17 / 1', i: 'بقالة', a: 8, c: 'تموينات' },
+            { d: '17 / 1', i: 'مقاضي قرطاسية', a: 260, c: 'عائلة' },
+            { d: '17 / 1', i: 'زين نت', a: 200, c: 'فواتير' },
+            { d: '17 / 1', i: 'موبايلي فاتورة', a: 115, c: 'فواتير' },
+            { d: '16 / 1', i: 'المشقر', a: 168, c: 'أخرى' },
+            { d: '16 / 1', i: 'عشاء', a: 21, c: 'ترفيه' },
+            { d: '16 / 1', i: 'كيبل آيفون', a: 40, c: 'تقنية' },
+            { d: '16 / 1', i: 'قهوة', a: 9, c: 'قهوة' },
+            { d: '15 / 1', i: 'بقالة', a: 15, c: 'تموينات' },
+            { d: '15 / 1', i: 'مريول سكينة', a: 150, c: 'عائلة' },
+            { d: '15 / 1', i: 'مريول رغد', a: 200, c: 'عائلة' },
+            { d: '15 / 1', i: 'عشاء', a: 46, c: 'ترفيه' },
+            { d: '15 / 1', i: 'سنتربوينت', a: 270, c: 'عائلة' },
+            { d: '15 / 1', i: 'غسيل سيارات', a: 65, c: 'سيارة' },
+            { d: '15 / 1', i: 'غداء', a: 39, c: 'ترفيه' },
+            { d: '15 / 1', i: 'ورق عنب وحلويات', a: 38, c: 'ترفيه' },
+            { d: '14 / 1', i: 'قهوة', a: 22, c: 'قهوة' },
+            { d: '14 / 1', i: 'غداء الجمعة', a: 308, c: 'ترفيه' },
+            { d: '13 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
+            { d: '13 / 1', i: 'خبز مسح', a: 34, c: 'تموينات' },
+            { d: '13 / 1', i: 'ماء بيذر', a: 50, c: 'تموينات' },
+            { d: '13 / 1', i: 'كيبل آيفون', a: 80, c: 'تقنية' },
+            { d: '12 / 1', i: 'بقالة', a: 23, c: 'تموينات' },
+            { d: '11 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
+            { d: '11 / 1', i: 'قهوة ثانية', a: 14, c: 'قهوة' },
+            { d: '11 / 1', i: 'ألعاب ترامبو زون', a: 436, c: 'ترفيه' },
+            { d: '10 / 1', i: 'غداء الجمعة', a: 127, c: 'ترفيه' },
+            { d: '10 / 1', i: '.', a: 40, c: 'أخرى' },
+            { d: '10 / 1', i: 'عشاء', a: 31, c: 'ترفيه' },
+            { d: '9 / 1', i: 'بنزين', a: 165, c: 'سيارة' },
+            { d: '9 / 1', i: 'بقالة', a: 44, c: 'تموينات' },
+            { d: '9 / 1', i: 'معسل', a: 88, c: 'ترفيه' },
+            { d: '8 / 1', i: 'قهوة', a: 13, c: 'قهوة' },
+            { d: '8 / 1', i: 'بقالة', a: 3, c: 'تموينات' },
+            { d: '7 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
+            { d: '7 / 1', i: 'قهوة ثانية', a: 10, c: 'قهوة' },
+            { d: '7 / 1', i: 'مقاضي لحم مفروم', a: 150, c: 'تموينات' },
+            { d: '7 / 1', i: 'كنافة', a: 85, c: 'ترفيه' },
+            { d: '7 / 1', i: 'هدايا العيال', a: 529, c: 'عائلة' },
+            { d: '7 / 1', i: 'مقاضي جواريب', a: 30, c: 'عائلة' },
+            { d: '7 / 1', i: 'برق', a: 300, c: 'فواتير' },
+            { d: '3 / 1', i: 'بقالة', a: 12, c: 'تموينات' },
+            { d: '3 / 1', i: 'كيبل آيفون', a: 20, c: 'تقنية' },
+            { d: '3 / 1', i: 'خضار', a: 85, c: 'تموينات' },
+            { d: '3 / 1', i: 'مكملات بروتين', a: 209, c: 'صحة' },
+            { d: '3 / 1', i: 'معسل قصدير', a: 10, c: 'ترفيه' },
+            { d: '3 / 1', i: 'توصيل سكينة', a: 200, c: 'عائلة' },
+            { d: '2 / 1', i: 'تابي قطع سيارة', a: 987, c: 'سيارة' },
+            { d: '2 / 1', i: 'بقالة', a: 19, c: 'تموينات' },
+            { d: '2 / 1', i: 'صفية', a: 650, c: 'عائلة' },
+            { d: '2 / 1', i: 'بركة المولد', a: 117, c: 'أخرى' },
+            { d: '2 / 1', i: 'برق اشتراك البرامج', a: 300, c: 'فواتير' },
+            { d: '2 / 1', i: 'محل خرابيط', a: 100, c: 'أخرى' },
+            { d: '1 / 1', i: 'الروضة', a: 25, c: 'عائلة' },
+            { d: '1 / 1', i: 'غسيل سيارة', a: 30, c: 'سيارة' },
+            { d: '1 / 1', i: 'بقالة', a: 9, c: 'تموينات' },
+            { d: '1 / 1', i: 'بنزين', a: 165, c: 'سيارة' },
+            { d: '1 / 1', i: 'عشاء مع الحب', a: 172, c: 'ترفيه' },
+            { d: '1 / 1', i: 'بقالة ثانية', a: 9, c: 'تموينات' },
+            { d: '1 / 1', i: 'قهوة', a: 20, c: 'قهوة' },
+            { d: '1 / 1', i: 'أخبار وورق', a: 180, c: 'أخرى' },
+            { d: '1 / 1', i: 'بقالة ثالثة', a: 11, c: 'تموينات' },
+
+            // --- ديسمبر ٢٠٢٥ في الأسفل ---
+            { d: '31 / 12', i: 'قهوة', a: 10, c: 'قهوة' },
+            { d: '31 / 12', i: 'قهوة ثانية', a: 10, c: 'قهوة' },
+            { d: '30 / 12', i: 'قهوة', a: 12, c: 'قهوة' },
+            { d: '30 / 12', i: 'قطة سنوية الدوام', a: 500, c: 'عمل' },
+            { d: '30 / 12', i: 'حوالة ❤️', a: 3300, c: 'التزامات' },
+            { d: '30 / 12', i: 'بقالة', a: 22, c: 'تموينات' },
+            { d: '29 / 12', i: 'قهوة', a: 10, c: 'قهوة' },
+            { d: '29 / 12', i: 'بنزين', a: 50, c: 'سيارة' },
+            { d: '29 / 12', i: 'بقالة', a: 6, c: 'تموينات' },
             { d: '28 / 12', i: 'فاتورة كهرباء', a: 1082, c: 'فواتير' },
             { d: '28 / 12', i: 'كافي صباح', a: 10, c: 'قهوة' },
             { d: '28 / 12', i: 'فيزا', a: 10000, c: 'التزامات' },
@@ -134,252 +405,19 @@
             { d: '28 / 12', i: 'ايجار الجلسة', a: 1050, c: 'ترفيه' },
             { d: '28 / 12', i: 'فاتورة موبايلي', a: 115, c: 'فواتير' },
             { d: '28 / 12', i: 'بقالة', a: 27, c: 'تموينات' },
-            { d: '29 / 12', i: 'قهوة', a: 10, c: 'قهوة' },
-            { d: '29 / 12', i: 'بنزين', a: 50, c: 'سيارة' },
-            { d: '29 / 12', i: 'بقالة', a: 6, c: 'تموينات' },
-            { d: '30 / 12', i: 'قهوة', a: 12, c: 'قهوة' },
-            { d: '30 / 12', i: 'قطة سنوية الدوام', a: 500, c: 'عمل' },
-            { d: '30 / 12', i: 'حوالة ❤️', a: 3300, c: 'التزامات' },
-            { d: '30 / 12', i: 'بقالة', a: 22, c: 'تموينات' },
-            { d: '31 / 12', i: 'قهوة', a: 10, c: 'قهوة' },
-            { d: '31 / 12', i: 'قهوة', a: 10, c: 'قهوة' },
-            { d: '1 / 1', i: 'الروضة', a: 25, c: 'عائلة' },
-            { d: '1 / 1', i: 'غسيل سيارة', a: 30, c: 'سيارة' },
-            { d: '1 / 1', i: 'بقالة', a: 9, c: 'تموينات' },
-            { d: '1 / 1', i: 'بنزين', a: 165, c: 'سيارة' },
-            { d: '1 / 1', i: 'عشاء مع الحب', a: 172, c: 'ترفيه' },
-            { d: '1 / 1', i: 'بقالة', a: 9, c: 'تموينات' },
-            { d: '1 / 1', i: 'قهوة', a: 20, c: 'قهوة' },
-            { d: '1 / 1', i: 'أخبار وورق', a: 180, c: 'أخرى' },
-            { d: '1 / 1', i: 'بقالة', a: 11, c: 'تموينات' },
-            { d: '2 / 1', i: 'تابي قطع سيارة', a: 987, c: 'سيارة' },
-            { d: '2 / 1', i: 'بقالة', a: 19, c: 'تموينات' },
-            { d: '2 / 1', i: 'صفية', a: 650, c: 'عائلة' },
-            { d: '2 / 1', i: 'بركة المولد', a: 117, c: 'أخرى' },
-            { d: '2 / 1', i: 'برق اشتراك البرامج', a: 300, c: 'فواتير' },
-            { d: '2 / 1', i: 'محل خرابيط', a: 100, c: 'أخرى' },
-            { d: '3 / 1', i: 'بقالة', a: 12, c: 'تموينات' },
-            { d: '3 / 1', i: 'كيبل آيفون', a: 20, c: 'تقنية' },
-            { d: '3 / 1', i: 'خضار', a: 85, c: 'تموينات' },
-            { d: '3 / 1', i: 'مكملات بروتين', a: 209, c: 'صحة' },
-            { d: '3 / 1', i: 'معسل قصدير', a: 10, c: 'ترفيه' },
-            { d: '3 / 1', i: 'توصيل سكينة', a: 200, c: 'عائلة' },
-            { d: '7 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
-            { d: '7 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
-            { d: '7 / 1', i: 'مقاضي لحم مفروم', a: 150, c: 'تموينات' },
-            { d: '7 / 1', i: 'كنافة', a: 85, c: 'ترفيه' },
-            { d: '7 / 1', i: 'هدايا العيال', a: 529, c: 'عائلة' },
-            { d: '7 / 1', i: 'مقاضي جواريب', a: 30, c: 'عائلة' },
-            { d: '7 / 1', i: 'برق', a: 300, c: 'فواتير' },
-            { d: '8 / 1', i: 'قهوة', a: 13, c: 'قهوة' },
-            { d: '8 / 1', i: 'بقالة', a: 3, c: 'تموينات' },
-            { d: '9 / 1', i: 'بنزين', a: 165, c: 'سيارة' },
-            { d: '9 / 1', i: 'بقالة', a: 44, c: 'تموينات' },
-            { d: '9 / 1', i: 'معسل', a: 88, c: 'ترفيه' },
-            { d: '10 / 1', i: 'غداء الجمعة', a: 127, c: 'ترفيه' },
-            { d: '10 / 1', i: '.', a: 40, c: 'أخرى' },
-            { d: '10 / 1', i: 'عشاء', a: 31, c: 'ترفيه' },
-            { d: '11 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
-            { d: '11 / 1', i: 'قهوة', a: 14, c: 'قهوة' },
-            { d: '11 / 1', i: 'ألعاب ترامبو زون', a: 436, c: 'ترفيه' },
-            { d: '12 / 1', i: 'بقالة', a: 23, c: 'تموينات' },
-            { d: '13 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
-            { d: '13 / 1', i: 'خبز مسح', a: 34, c: 'تموينات' },
-            { d: '13 / 1', i: 'ماء بيذر', a: 50, c: 'تموينات' },
-            { d: '13 / 1', i: 'كيبل آيفون', a: 80, c: 'تقنية' },
-            { d: '14 / 1', i: 'قهوة', a: 22, c: 'قهوة' },
-            { d: '14 / 1', i: 'غداء الجمعة', a: 308, c: 'ترفيه' },
-            { d: '15 / 1', i: 'بقالة', a: 15, c: 'تموينات' },
-            { d: '15 / 1', i: 'مريول سكينة', a: 150, c: 'عائلة' },
-            { d: '15 / 1', i: 'مريول رغد', a: 200, c: 'عائلة' },
-            { d: '15 / 1', i: 'عشاء', a: 46, c: 'ترفيه' },
-            { d: '15 / 1', i: 'مقاضي سنتربوينت', a: 270, c: 'عائلة' },
-            { d: '15 / 1', i: 'غسيل سيارات', a: 65, c: 'سيارة' },
-            { d: '15 / 1', i: 'غداء', a: 39, c: 'ترفيه' },
-            { d: '15 / 1', i: 'ورق عنب وحلويات', a: 38, c: 'ترفيه' },
-            { d: '16 / 1', i: 'المشقر', a: 168, c: 'أخرى' },
-            { d: '16 / 1', i: 'عشاء', a: 21, c: 'ترفيه' },
-            { d: '16 / 1', i: 'كيبل آيفون', a: 40, c: 'تقنية' },
-            { d: '16 / 1', i: 'قهوة', a: 9, c: 'قهوة' },
-            { d: '17 / 1', i: 'سلمون', a: 105, c: 'تموينات' },
-            { d: '17 / 1', i: 'بنزين', a: 167, c: 'سيارة' },
-            { d: '17 / 1', i: 'ثوب عبود', a: 80, c: 'عائلة' },
-            { d: '17 / 1', i: 'حلاق عبود', a: 25, c: 'عائلة' },
-            { d: '17 / 1', i: 'عشاء', a: 22, c: 'ترفيه' },
-            { d: '17 / 1', i: 'مقاضي dجاج', a: 108, c: 'تموينات' },
-            { d: '17 / 1', i: 'بقالة', a: 8, c: 'تموينات' },
-            { d: '17 / 1', i: 'مقاضي قرطاسية', a: 260, c: 'عائلة' },
-            { d: '17 / 1', i: 'زين نت', a: 200, c: 'فواتير' },
-            { d: '17 / 1', i: 'موبايلي فاتورة', a: 115, c: 'فواتير' },
-            { d: '18 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
-            { d: '18 / 1', i: 'مكملات', a: 147, c: 'صحة' },
-            { d: '18 / 1', i: 'عشاء', a: 69, c: 'ترفيه' },
-            { d: '18 / 1', i: 'بقالة وفواكة', a: 80, c: 'تموينات' },
-            { d: '19 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
-            { d: '20 / 1', i: 'قهوة', a: 20, c: 'قهوة' },
-            { d: '20 / 1', i: 'بقالة', a: 5, c: 'تموينات' },
-            { d: '20 / 1', i: 'معسل', a: 75, c: 'ترفيه' },
-            { d: '20 / 1', i: 'حلاق', a: 20, c: 'عائلة' },
-            { d: '20 / 1', i: 'بقالة', a: 8, c: 'تموينات' },
-            { d: '21 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
-            { d: '21 / 1', i: 'غسيل زوالي', a: 180, c: 'أخرى' },
-            { d: '21 / 1', i: 'معسل', a: 190, c: 'ترفيه' },
-            { d: '21 / 1', i: 'مقاضي قرطاسية سبورة', a: 58, c: 'عائلة' },
-            { d: '21 / 1', i: 'بقالة', a: 23, c: 'تموينات' },
-            { d: '22 / 1', i: 'غير معروف', a: 21, c: 'أخرى' },
-            { d: '23 / 1', i: 'عشاء', a: 33, c: 'ترفيه' },
-            { d: '24 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
-            { d: '24 / 1', i: 'بقالة', a: 4, c: 'تموينات' },
-            { d: '25 / 1', i: 'مقاضي', a: 25, c: 'تموينات' },
-            { d: '25 / 1', i: 'بنزين', a: 167, c: 'سيارة' },
-            { d: '25 / 1', i: 'STC', a: 300, c: 'فواتير' },
-            { d: '25 / 1', i: 'بقالة', a: 15, c: 'تموينات' },
-            { d: '25 / 1', i: 'مقاضي قرطاسية', a: 30, c: 'عائلة' },
-            { d: '26 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
-            { d: '26 / 1', i: 'شاشات تابلت', a: 400, c: 'تقنية' },
-            { d: '26 / 1', i: 'دروس خصوصية صفية', a: 700, c: 'عائلة' },
-            { d: '26 / 1', i: 'صيانة السيارة', a: 1025, c: 'سيارة' },
-            { d: '26 / 1', i: 'غير معروف', a: 90, c: 'أخرى' },
-            { d: '26 / 1', i: 'بقالة', a: 4, c: 'تموينات' },
-            { d: '26 / 1', i: 'مقاضي بقالة', a: 26, c: 'تموينات' },
-            { d: '26 / 1', i: 'أكياس قرقيعان', a: 200, c: 'عائلة' },
-            { d: '26 / 1', i: 'فيزا تسوية', a: 16290, c: 'التزامات' },
-            { d: '26 / 1', i: 'قهوة', a: 15, c: 'قهوة' },
-            { d: '26 / 1', i: 'بدلة عبود', a: 60, c: 'عائلة' },
-            { d: '26 / 1', i: 'بقالة', a: 10, c: 'تموينات' },
-            { d: '26 / 1', i: 'رحلة مدرسة عبود', a: 35, c: 'عائلة' },
-            { d: '28 / 1', i: 'عاملة منزلية همة', a: 115, c: 'أخرى' },
-            { d: '28 / 1', i: 'نادي جيم رباب', a: 1000, c: 'صحة' },
-            { d: '28 / 1', i: 'حلاق', a: 20, c: 'عائلة' },
-            { d: '28 / 1', i: 'بقالة', a: 13, c: 'تموينات' },
-            { d: '28 / 1', i: 'معسل', a: 97, c: 'ترفيه' },
-            { d: '28 / 1', i: 'رسوم الروضة رغد', a: 4425, c: 'عائلة' },
-            { d: '28 / 1', i: 'مخالفات مرورية', a: 226, c: 'سيارة' },
-            { d: '28 / 1', i: 'قطع غيار تابي', a: 988, c: 'سيارة' },
-            { d: '29 / 1', i: 'قهوة', a: 10, c: 'قهوة' },
-            { d: '29 / 1', i: 'غير معروف', a: 109, c: 'أخرى' },
-            { d: '30 / 1', i: 'بقالة', a: 20, c: 'تموينات' },
-            { d: '30 / 1', i: 'بقالة ثانية', a: 20, c: 'تموينات' },
-            { d: '30 / 1', i: 'فساتين قرقيعان', a: 400, c: 'عائلة' },
-            { d: '30 / 1', i: 'بقالة ثالثة', a: 5, c: 'تموينات' },
-            { d: '30 / 1', i: 'عشاء', a: 88, c: 'ترفيه' },
-            { d: '30 / 1', i: 'بستان العائلة', a: 135, c: 'تموينات' },
-            { d: '31 / 1', i: 'مستشفى الموسى', a: 600, c: 'صحة' },
-            { d: '31 / 1', i: 'نينجا بقالة', a: 70, c: 'تموينات' },
-            { d: '31 / 1', i: 'بقالة', a: 31, c: 'تموينات' },
-            { d: '31 / 1', i: 'سكراب طبي', a: 330, c: 'صحة' },
-            { d: '31 / 1', i: 'غير معروف', a: 50, c: 'أخرى' },
-            { d: '31 / 1', i: 'عشاء', a: 93, c: 'ترفيه' },
-            { d: '1 / 2', i: 'قهوة', a: 10, c: 'قهوة' },
-            { d: '1 / 2', i: 'توصيل مدرسة سكينة', a: 200, c: 'عائلة' },
-            { d: '1 / 2', i: 'مقاضي بندة', a: 1325, c: 'تموينات' },
-            { d: '2 / 2', i: 'غير معروف', a: 54, c: 'أخرى' },
-            { d: '2 / 2', i: 'بنزين', a: 165, c: 'سيارة' },
-            { d: '2 / 2', i: 'همة عاملة منزلية', a: 85, c: 'أخرى' },
-            { d: '3 / 2', i: 'قهوة', a: 14, c: 'قهوة' },
-            { d: '3 / 2', i: 'قرقيعان', a: 234, c: 'عائلة' },
-            { d: '3 / 2', i: 'همة عاملة منزلية', a: 105, c: 'أخرى' },
-            { d: '3 / 2', i: 'بقالة', a: 8, c: 'تموينات' },
-            { d: '4 / 2', i: 'قهوة', a: 13, c: 'قهوة' },
-            { d: '4 / 2', i: 'بقالة', a: 44, c: 'تموينات' },
-            { d: '5 / 2', i: 'قهوة', a: 10, c: 'قهوة' },
-            { d: '5 / 2', i: 'غير معروف', a: 63, c: 'أخرى' },
-            { d: '5 / 2', i: 'معسل', a: 88, c: 'ترفيه' },
-            { d: '5 / 2', i: 'همة عاملة منزلية', a: 870, c: 'أخرى' },
-            { d: '5 / 2', i: 'قهوة إضافية', a: 10, c: 'قهوة' },
-            { d: '5 / 2', i: 'ألعاب العامر', a: 350, c: 'ترفيه' },
-            { d: '5 / 2', i: 'كتيب تمارين', a: 12, c: 'عائلة' },
-            { d: '6 / 2', i: 'برق barq', a: 500, c: 'فواتير' },
-            { d: '6 / 2', i: 'باينينس P2P', a: 2000, c: 'التزامات' },
-            { d: '6 / 2', i: 'قهوة', a: 9, c: 'قهوة' },
-            { d: '6 / 2', i: 'مقاضي خمسات', a: 145, c: 'تموينات' },
-            { d: '6 / 2', i: 'عشاء', a: 88, c: 'ترفيه' },
-            { d: '6 / 2', i: 'بركة المولد', a: 150, c: 'أخرى' },
-            { d: '6 / 2', i: 'معسل', a: 75, c: 'ترفيه' },
-            { d: '8 / 2', i: 'لبسة عبود ومسند كاحل', a: 100, c: 'عائلة' },
-            { d: '8 / 2', i: 'بقالة', a: 7, c: 'تموينات' },
-            { d: '9 / 2', i: 'مقاضي دجاج', a: 132, c: 'تموينات' },
-            { d: '9 / 2', i: 'مقاضي جرس منزلي تابي', a: 116, c: 'منزل' },
-            { d: '9 / 2', i: 'صيانة منزلية خرطوم حمام', a: 58, c: 'منزل' },
-            { d: '9 / 2', i: 'معسل', a: 28, c: 'ترفيه' },
-            { d: '9 / 2', i: 'صيدلية فياجرا موفيكول', a: 105, c: 'صحة' },
-            { d: '9 / 2', i: 'سوارة رياضية رباب تابي', a: 280, c: 'صحة' },
-            { d: '9 / 2', i: 'بقالة', a: 36, c: 'تموينات' },
-            { d: '10 / 2', i: 'صيدلية دواء الدهون', a: 350, c: 'صحة' },
-            { d: '10 / 2', i: 'غداء', a: 26, c: 'ترفيه' },
-            { d: '10 / 2', i: 'مغسلة ملابس', a: 23, c: 'منزل' },
-            { d: '10 / 2', i: 'مقاضي ريموت شاشة', a: 20, c: 'تقنية' },
-            { d: '10 / 2', i: 'صيانة شطاف حمام', a: 25, c: 'منزل' },
-            { d: '11 / 2', i: 'بنزين', a: 161, c: 'سيارة' },
-            { d: '11 / 2', i: 'جرس باب ذكي eufy', a: 500, c: 'منزل' },
-            { d: '11 / 2', i: 'عيادة عظام سكينة', a: 230, c: 'صحة' },
-            { d: '11 / 2', i: 'عشاء', a: 67, c: 'ترفيه' },
-            { d: '11 / 2', i: 'برق barq', a: 100, c: 'فواتير' },
-            { d: '12 / 2', i: 'غير معروف', a: 22, c: 'أخرى' },
-            { d: '12 / 2', i: 'معرض التمور', a: 170, c: 'تموينات' },
-            { d: '13 / 2', i: 'غير معروف', a: 43, c: 'أخرى' },
-            { d: '13 / 2', i: 'مقاضي بقالة', a: 55, c: 'تموينات' },
-            { d: '13 / 2', i: 'فاتورة كهرباء', a: 1080, c: 'فواتير' },
-            { d: '13 / 2', i: 'مخالفة مرورية', a: 113, c: 'سيارة' },
-            { d: '13 / 2', i: 'مقاضي بقالة ثانية', a: 42, c: 'تموينات' },
-            { d: '13 / 2', i: 'عشاء فدك', a: 21, c: 'ترفيه' },
-            { d: '13 / 2', i: 'حلاق', a: 15, c: 'ترفيه' },
-            { d: '13 / 2', i: 'تغليف هدية رباب', a: 285, c: 'عائلة' },
-            { d: '13 / 2', i: 'صيدلية سياليس', a: 240, c: 'صحة' },
-            { d: '13 / 2', i: 'عصير فرغلي', a: 23, c: 'ترفيه' },
-            { d: '14 / 2', i: 'مقاضي بقالة', a: 37, c: 'تموينات' },
-            { d: '14 / 2', i: 'غسيل سيارات', a: 65, c: 'سيارة' },
-            { d: '15 / 2', i: 'زين نت', a: 324, c: 'فواتير' },
-            { d: '15 / 2', i: 'زين نت', a: 200, c: 'فواتير' },
-            { d: '15 / 2', i: 'بقالة', a: 16, c: 'تموينات' },
-            { d: '15 / 2', i: 'بروتين Clear Whey', a: 290, c: 'صحة' },
-            { d: '15 / 2', i: 'بقالة إضافية', a: 20, c: 'تموينات' },
-            { d: '16 / 2', i: 'ثوب عبود', a: 65, c: 'عائلة' },
-            { d: '16 / 2', i: 'معسل', a: 245, c: 'ترفيه' },
-            { d: '16 / 2', i: 'خياط تقصير ملابسي', a: 75, c: 'عائلة' },
-            { d: '16 / 2', i: 'غداء', a: 34, c: 'ترفيه' },
-            { d: '16 / 2', i: 'مخالفة مرورية', a: 113, c: 'سيارة' },
-            { d: '16 / 2', i: '٢ كيبل نت', a: 30, c: 'تقنية' },
-            { d: '17 / 2', i: 'تفعيل موبايلي سنوي', a: 350, c: 'فواتير' },
-            { d: '17 / 2', i: 'مقاضي نت تقنية', a: 64, c: 'تقنية' },
-            { d: '17 / 2', i: 'بقالة', a: 4, c: 'تموينات' },
-            { d: '18 / 2', i: 'بنزين', a: 50, c: 'سيارة' },
-            { d: '18 / 2', i: 'عيادة غدد الموسى سكينة', a: 365, c: 'صحة' },
-            { d: '18 / 2', i: 'حوالة رباب ❤️', a: 2500, c: 'التزامات' },
-            { d: '18 / 2', i: 'بقالة', a: 35, c: 'تموينات' },
-            { d: '18 / 2', i: 'تقنية نت', a: 8, c: 'تقنية' },
-            { d: '18 / 2', i: 'قهوة بن', a: 50, c: 'قهوة' },
-            { d: '21 / 2', i: 'كافي', a: 25, c: 'قهوة' },
-            { d: '21 / 2', i: 'بقالة', a: 12, c: 'تموينات' },
-            { d: '21 / 2', i: 'مخالفة موقف', a: 115, c: 'سيارة' },
-            { d: '22 / 2', i: 'بقالة', a: 30, c: 'تموينات' },
-            { d: '22 / 2', i: 'بنزين', a: 156, c: 'سيارة' },
-            { d: '22 / 2', i: 'تحاليل سكينة', a: 560, c: 'صحة' },
-            { d: '24 / 2', i: 'مقاضي لحم', a: 110, c: 'تموينات' },
-            { d: '24 / 2', i: 'بقالة', a: 100, c: 'تموينات' },
-            { d: '24 / 2', i: 'ماء', a: 11, c: 'تموينات' },
-            { d: '24 / 2', i: 'معسل', a: 100, c: 'ترفيه' },
-            { d: '24 / 2', i: 'مخالفات', a: 600, c: 'سيارة' },
-            { d: '24 / 2', i: 'حوالة رباب ❤️', a: 4000, c: 'التزامات' },
-            { d: '24 / 2', i: 'نينجا صدور دجاج وأخرى', a: 109, c: 'تموينات' },
-            { d: '24 / 2', i: 'بقالة بيض', a: 20, c: 'تموينات' },
-            { d: '25 / 2', i: 'توصيل بروتين', a: 55, c: 'صحة' },
-            { d: '25 / 2', i: 'توصيلة كهرب', a: 50, c: 'منزل' },
+            
+            // تسوية الرصيد المتبقي
+            { d: '01 / 01', i: 'تسوية رصيد سابق', a: 100, c: 'أخرى' }
         ];
 
-        // 2. محرك الترتيب الزمني (ديسمبر ٢٠٢٥ تحت)
+        // logic engine
         const sortDates = (dates) => {
             return dates.sort((a, b) => {
-                const [da, ma] = a.split(' / ').map(n => parseInt(n.trim()));
-                const [db, mb] = b.split(' / ').map(n => parseInt(n.trim()));
-                
-                // السنة: شهر 12 هو 2025 (قيمة أقل)، شهر 1 و 2 هو 2026 (قيمة أعلى)
+                const [da, ma] = a.split('/').map(n => parseInt(n.trim()));
+                const [db, mb] = b.split('/').map(n => parseInt(n.trim()));
                 const ya = ma === 12 ? 2025 : 2026;
                 const yb = mb === 12 ? 2025 : 2026;
-
-                if (ya !== yb) return yb - ya; // السنة الأحدث فوق
-                if (ma !== mb) return mb - ma; // الشهر الأحدث فوق
-                return db - da; // اليوم الأحدث فوق
+                return (yb * 10000 + mb * 100 + db) - (ya * 10000 + ma * 100 + da);
             });
         };
 
@@ -395,18 +433,17 @@
         };
         init();
 
-        const icons = { 'قهوة': 'fa-mug-hot', 'تموينات': 'fa-basket-shopping', 'سيارة': 'fa-car', 'فواتير': 'fa-bolt', 'التزامات': 'fa-credit-card', 'عائلة': 'fa-heart', 'ترفيه': 'fa-masks-theater', 'صحة': 'fa-hospital', 'تقنية': 'fa-mobile-alt', 'تمويل': 'fa-chart-line', 'منزل': 'fa-home', 'أخرى': 'fa-tag' };
+        const icons = { 'قهوة': 'fa-mug-hot', 'تموينات': 'fa-basket-shopping', 'سيارة': 'fa-car', 'فواتير': 'fa-bolt', 'التزامات': 'fa-credit-card', 'عائلة': 'fa-heart', 'ترفيه': 'fa-masks-theater', 'صحة': 'fa-hospital', 'تقنية': 'fa-mobile-alt', 'تمويل': 'fa-chart-line', 'منزل': 'fa-home', 'عمل': 'fa-briefcase', 'أخرى': 'fa-tag' };
 
         window.render = () => {
-            const all = [...rawDataFromUser, ...cloudData];
+            const all = [...archive, ...cloudData];
             const q = document.getElementById('searchInput').value.toLowerCase();
             const filtered = all.filter(x => x.i.toLowerCase().includes(q) || x.c.toLowerCase().includes(q));
 
             const total = filtered.reduce((s, x) => s + x.a, 0);
             const distinctDays = [...new Set(all.map(x => x.d))];
             
-            document.getElementById('totalAmountDisplay').innerText = total.toLocaleString() + ' ر.س';
-            document.getElementById('summaryHeader').innerText = `المجموع: ${total.toLocaleString()} ر.س`;
+            document.getElementById('totalDisplay').innerText = total.toLocaleString() + ' ر.س';
             document.getElementById('txCount').innerText = filtered.length;
             document.getElementById('dayCount').innerText = distinctDays.length;
 
@@ -414,10 +451,10 @@
             const cats = {};
             filtered.forEach(x => cats[x.c] = (cats[x.c] || 0) + x.a);
             document.getElementById('categoryGrid').innerHTML = Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([n, v]) => `
-                <div class="group">
+                <div class="group text-right">
                     <div class="flex justify-between items-center mb-2">
-                        <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-indigo-600 shadow-sm"><i class="fas ${icons[n] || 'fa-tag'} text-xs"></i></div><span class="font-bold text-sm text-slate-700">${n}</span></div>
-                        <span class="text-xs font-black text-slate-500">${v.toLocaleString()} ر.س</span>
+                        <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-indigo-600 shadow-sm"><i class="fas ${icons[n] || 'fa-tag'} text-xs"></i></div><span class="font-bold text-xs text-slate-700">${n}</span></div>
+                        <span class="text-[10px] font-black text-slate-500">${v.toLocaleString()} ر.س</span>
                     </div>
                     <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                         <div class="h-full bg-indigo-600 progress-bar" style="width: ${(v/total*100)}%"></div>
@@ -431,26 +468,26 @@
             const sortedDates = sortDates(Object.keys(grouped));
 
             document.getElementById('dailyTimeline').innerHTML = sortedDates.map(d => `
-                <div class="day-group border-r-4 border-slate-100 pr-6 pb-2 relative">
-                    <div class="absolute -right-[11px] top-0 w-5 h-5 bg-white border-4 border-indigo-600 rounded-full shadow-sm z-10"></div>
-                    <div class="flex justify-between items-center mb-6">
+                <div class="day-group border-r-2 border-slate-200 pr-5 pb-2 relative text-right">
+                    <div class="absolute -right-[7px] top-0 w-3 h-3 bg-indigo-600 rounded-full border-2 border-white shadow-sm z-10"></div>
+                    <div class="flex justify-between items-center mb-5">
                         <div>
-                            <h4 class="font-black text-slate-800 text-xl">${d}</h4>
-                            <span class="text-[10px] text-slate-400 font-black tracking-widest uppercase">${d.includes('/ 12') ? 'ديسمبر ٢٠٢٥' : '٢٠٢٦'}</span>
+                            <h4 class="font-black text-slate-800 text-lg">${d}</h4>
+                            <span class="text-[9px] text-slate-400 font-black tracking-widest uppercase">${d.includes('/ 12') ? 'ديسمبر ٢٠٢٥' : '٢٠٢٦'}</span>
                         </div>
-                        <span class="bg-white border border-slate-200 px-5 py-2.5 rounded-2xl font-black text-slate-900 shadow-sm">${grouped[d].reduce((s,i)=>s+i.a, 0).toLocaleString()} ر.س</span>
+                        <span class="bg-white border border-slate-100 px-4 py-2 rounded-2xl font-black text-slate-900 shadow-sm text-sm">${grouped[d].reduce((s,i)=>s+i.a, 0).toLocaleString()} ر.س</span>
                     </div>
                     <div class="grid grid-cols-1 gap-3">
                         ${grouped[d].map(item => `
-                            <div class="bg-white p-5 rounded-[2rem] border border-slate-100 flex justify-between items-center card-shadow hover:border-indigo-100 transition-all">
+                            <div class="bg-white p-4 rounded-3xl border border-slate-100 flex justify-between items-center hover:border-indigo-100 transition-all card-shadow">
                                 <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 text-lg"><i class="fas ${icons[item.c] || 'fa-tag'}"></i></div>
+                                    <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 text-lg"><i class="fas ${icons[item.c] || 'fa-tag'}"></i></div>
                                     <div class="text-right">
-                                        <p class="font-black text-slate-800 text-[15px] leading-tight">${item.i}</p>
-                                        <span class="text-[9px] font-black text-slate-400 uppercase bg-slate-50 px-2 py-0.5 rounded-md">${item.c}</span>
+                                        <p class="font-bold text-slate-800 text-[14px] leading-tight">${item.i}</p>
+                                        <span class="text-[9px] font-black text-slate-400 uppercase bg-slate-50 px-2 py-0.5 rounded-md mt-1 inline-block">${item.c}</span>
                                     </div>
                                 </div>
-                                <span class="font-black text-slate-800 text-lg">${item.a.toLocaleString()} <span class="text-[10px] opacity-30 font-normal">ر.س</span></span>
+                                <span class="font-black text-slate-800">${item.a.toLocaleString()} <span class="text-[10px] opacity-30 font-normal">ر.س</span></span>
                             </div>
                         `).join('')}
                     </div>
@@ -459,17 +496,19 @@
         };
 
         window.toggleModal = (show) => document.getElementById('smartModal').classList.toggle('hidden', !show);
+        window.openModal = () => toggleModal(true);
+        window.closeModal = () => toggleModal(false);
 
         window.processSmartAdd = async () => {
             const input = document.getElementById('smartInput');
             if (!input.value.trim()) return;
             document.getElementById('loader').classList.remove('hidden');
-            document.getElementById('btnText').innerText = 'جاري المعالجة...';
+            document.getElementById('saveBtn').disabled = true;
 
             try {
                 const today = new Date();
                 const dStr = `${today.getDate()} / ${today.getMonth()+1}`;
-                const prompt = `Extract expense JSON: { "d": "${dStr}", "i": "item", "a": amount, "c": "category" }. Cats: قهوة, تموينات, سيارة, فواتير, التزامات, عائلة, ترفيه, صحة, تقنية, تمويل, منزل, أخرى. Input: "${input.value}"`;
+                const prompt = `Extract expense JSON: { "d": "${dStr}", "i": "item", "a": amount, "c": "category" }. Cats: قهوة, تموينات, سيارة, فواتير, التزامات, عائلة, ترفيه, صحة, تقنية, تمويل, منزل, عمل, أخرى. Input: "${input.value}"`;
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
                     method: 'POST', body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
@@ -481,7 +520,7 @@
             } catch(e) { console.error(e); }
             finally {
                 document.getElementById('loader').classList.add('hidden');
-                document.getElementById('btnText').innerText = 'حفظ في السجل السحابي';
+                document.getElementById('saveBtn').disabled = false;
             }
         };
 
